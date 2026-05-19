@@ -1,0 +1,143 @@
+.bar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statusPills {
+  display: flex;
+  gap: 6px;
+}
+
+.pill {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.pill:hover { border-color: var(--ink); color: var(--ink); }
+
+.pillActive {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+
+.updated {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.viewBtn {
+  font-family: var(--font-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 30px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  transition: all 0.15s;
+}
+
+.viewBtn:hover { color: var(--ink); background: rgba(26,22,18,0.04); }
+
+.viewBtnActive {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.refreshBtn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.refreshBtn:hover { background: var(--accent-light); }
+.refreshBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinning { animation: spin 0.8s linear infinite; }
+
+.museumScroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.museumScroll::-webkit-scrollbar { display: none; }
+
+.museumBtn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: transparent;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.museumBtn:hover { color: var(--ink); border-color: rgba(26,22,18,0.3); }
+
+.museumBtnActive {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: rgba(200,67,42,0.3);
+  font-weight: 500;
+}
+
+.countLine {
+  font-size: 12px;
+  color: var(--muted);
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--border);
+}
