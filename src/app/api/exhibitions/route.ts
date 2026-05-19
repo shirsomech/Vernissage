@@ -1,62 +1,86 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
+import type { Exhibition, ExhibitionCategory } from '@/lib/types'
 
-const client = new Anthropic()
+export const revalidate = 3600
 
-const MUSEUMS = [
-  "Louvre",
-  "Musée d'Orsay",
-  "Centre Pompidou",
-  "Palais de Tokyo",
-  "Musée Rodin",
-  "Fondation Louis Vuitton",
-  "Grand Palais",
-  "Musée de l'Orangerie",
-  "Musée Picasso",
-  "Jeu de Paume",
-]
+const PARIS_API =
+  'https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/que-faire-a-paris-/records'
+
+interface ParisRecord {
+  title?: string
+  lead_text?: string
+  description?: string
+  date_start?: string
+  date_end?: string
+  address_name?: string
+  url?: string
+  tags?: string
+  category?: string
+}
+
+interface ParisApiResponse {
+  results: ParisRecord[]
+}
+
+function deriveCategory(tags?: string, category?: string): ExhibitionCategory {
+  const text = `${tags ?? ''} ${category ?? ''}`.toLowerCase()
+  if (text.includes('photo')) return 'Photography'
+  if (text.includes('sculpture')) return 'Sculpture'
+  if (text.includes('design')) return 'Design'
+  if (text.includes('contemporain') || text.includes('contemporary')) return 'Contemporary'
+  if (text.includes('retrospective') || text.includes('rétrospective')) return 'Retrospective'
+  if (text.includes('peinture') || text.includes('dessin') || text.includes('painting')) return 'Painting'
+  return 'Mixed Media'
+}
+
+function formatDateRange(start?: string, end?: string): string {
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  if (start && end) return `${fmt(start)} – ${fmt(end)}`
+  if (start) return `From ${fmt(start)}`
+  if (end) return `Until ${fmt(end)}`
+  return 'Dates TBD'
+}
+
+function mapToExhibition(record: ParisRecord): Exhibition {
+  const now = new Date()
+  const startDate = record.date_start ? record.date_start.slice(0, 10) : ''
+  const endDate = record.date_end ? record.date_end.slice(0, 10) : ''
+  const status = record.date_start && new Date(record.date_start) > now ? 'Upcoming' : 'Ongoing'
+
+  return {
+    title: record.title ?? 'Untitled',
+    museum: record.address_name ?? 'Paris',
+    artist: null,
+    dates: formatDateRange(record.date_start, record.date_end),
+    startDate,
+    endDate,
+    status,
+    description: record.lead_text ?? record.description ?? '',
+    url: record.url ?? null,
+    category: deriveCategory(record.tags, record.category),
+  }
+}
 
 export async function GET() {
   try {
-    const prompt = `You are a Paris art & culture expert. Search the web for current and upcoming exhibitions (as of May 2026) at these Paris museums and galleries: ${MUSEUMS.join(', ')}.
-
-Return ONLY a valid JSON array (no markdown, no backticks, no preamble) with 12-16 exhibitions.
-
-Each object must have exactly these keys:
-- "title": exhibition name
-- "museum": museum name (use the exact names from the list above)
-- "artist": main artist or curator name, or null if group show
-- "dates": date range string e.g. "12 Apr – 30 Jun 2026"
-- "startDate": ISO date string e.g. "2026-04-12"
-- "endDate": ISO date string e.g. "2026-06-30"
-- "status": "Ongoing" or "Upcoming"
-- "description": 2-3 sentence description
-- "url": official URL if available, else null
-- "category": one of "Painting", "Sculpture", "Photography", "Design", "Contemporary", "Retrospective", "Mixed Media"
-
-Return only the JSON array. No other text.`
-
-    const response = await client.messages.create({
-      model: 'claude-opus-4-5',
-      max_tokens: 4000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{ role: 'user', content: prompt }],
+    const params = new URLSearchParams({
+      where: 'tags like "%Exposition%"',
+      limit: '50',
+      order_by: 'date_start',
     })
 
-    const textBlock = response.content.find((b) => b.type === 'text')
-    if (!textBlock || textBlock.type !== 'text') {
-      return NextResponse.json({ error: 'No response from AI' }, { status: 500 })
+    const res = await fetch(`${PARIS_API}?${params}`, {
+      next: { revalidate: 3600 },
+    })
+
+    if (!res.ok) {
+      throw new Error(`Paris API returned ${res.status}`)
     }
 
-    let raw = textBlock.text.trim().replace(/```json|```/g, '').trim()
-    const start = raw.indexOf('[')
-    const end = raw.lastIndexOf(']')
-    if (start === -1 || end === -1) {
-      return NextResponse.json({ error: 'Could not parse exhibitions data' }, { status: 500 })
-    }
-    raw = raw.slice(start, end + 1)
+    const data: ParisApiResponse = await res.json()
+    const exhibitions = data.results.map(mapToExhibition)
 
-    const exhibitions = JSON.parse(raw)
     return NextResponse.json({ exhibitions, fetchedAt: new Date().toISOString() })
   } catch (err) {
     console.error(err)

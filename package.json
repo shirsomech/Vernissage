@@ -11,9 +11,7 @@
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "ai": "^4.3.16",
-    "@anthropic-ai/sdk": "^0.52.0",
-    "leaflet": "^1.9.4",
+"leaflet": "^1.9.4",
     "@types/leaflet": "^1.9.14"
   },
   "devDependencies": {

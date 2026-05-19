@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Paris Exhibitions',
-  description: 'Current & upcoming exhibitions across Paris's top museums and galleries',
+  description: "Current & upcoming exhibitions across Paris's top museums and galleries",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
