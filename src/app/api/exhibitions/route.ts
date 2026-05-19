@@ -14,7 +14,7 @@ interface ParisRecord {
   date_end?: string
   address_name?: string
   url?: string
-  tags?: string
+  qfap_tags?: string
   category?: string
 }
 
@@ -22,8 +22,8 @@ interface ParisApiResponse {
   results: ParisRecord[]
 }
 
-function deriveCategory(tags?: string, category?: string): ExhibitionCategory {
-  const text = `${tags ?? ''} ${category ?? ''}`.toLowerCase()
+function deriveCategory(qfap_tags?: string, category?: string): ExhibitionCategory {
+  const text = `${qfap_tags ?? ''} ${category ?? ''}`.toLowerCase()
   if (text.includes('photo')) return 'Photography'
   if (text.includes('sculpture')) return 'Sculpture'
   if (text.includes('design')) return 'Design'
@@ -58,14 +58,14 @@ function mapToExhibition(record: ParisRecord): Exhibition {
     status,
     description: record.lead_text ?? record.description ?? '',
     url: record.url ?? null,
-    category: deriveCategory(record.tags, record.category),
+    category: deriveCategory(record.qfap_tags, record.category),
   }
 }
 
 export async function GET() {
   try {
     const params = new URLSearchParams({
-      where: 'tags like "%Exposition%"',
+      where: 'qfap_tags like "%Expo%"',
       limit: '50',
       order_by: 'date_start',
     })
